@@ -85,9 +85,11 @@ jobs:
 
   generate-bridge:
     uses: ./.github/workflows/bridge.yml
+    secrets: inherit
 
   build-RustDeskTempTopMostWindow:
     uses: ./.github/workflows/third-party-RustDeskTempTopMostWindow.yml
+    secrets: inherit
     strategy:
       fail-fast: false
       matrix:

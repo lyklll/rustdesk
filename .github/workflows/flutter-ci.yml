@@ -22,6 +22,7 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/flutter-build.yml
+    secrets: inherit
     with:
       upload-artifact: true
       upload-tag: "v1.5.0-wyc"

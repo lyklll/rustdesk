@@ -292,6 +292,9 @@ jobs:
           # --hwcodec is shared by all Windows targets; per-target extras (e.g. --vram) come from the matrix
           python3 .\build.py --portable --flutter --skip-portable-pack --hwcodec ${{ matrix.job.build-args }}
           mv ./flutter/build/windows/${{ matrix.job.flutter-arch }}/runner/Release ./rustdesk
+          # Branded binary: APP_NAME is "wyc", so the packaged executable is wyc.exe.
+          # The MSI preprocess step below locates <app-name>.exe inside the dist dir.
+          mv ./rustdesk/rustdesk.exe ./rustdesk/wyc.exe
 
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
@@ -371,7 +374,7 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
+          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/wyc.exe
           popd
           mkdir -p ./SignOutput
           mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.exe
@@ -392,7 +395,7 @@ jobs:
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
           pushd ./res/msi
-          python preprocess.py --arp -d ../../rustdesk
+          python preprocess.py --arp --app-name wyc -d ../../rustdesk
           nuget restore msi.sln
           $msiPlatform = if ('${{ matrix.job.arch }}' -eq 'aarch64') { 'ARM64' } else { 'x64' }
           msbuild msi.sln -p:Configuration=Release -p:Platform=$msiPlatform /p:TargetVersion=Windows10
@@ -422,7 +425,7 @@ jobs:
         run: |
           git checkout -- res/msi
           cp -r ./rustdesk ./rustdesk-msi-template
-          mv ./rustdesk-msi-template/rustdesk.exe ./rustdesk-msi-template/RDAPPNAM.exe
+          mv ./rustdesk-msi-template/wyc.exe ./rustdesk-msi-template/RDAPPNAM.exe
           Set-Content -Path ./rustdesk-msi-template/custom.txt -Value 'placeholder' -NoNewline
           $assets = './rustdesk-msi-template/data/flutter_assets/assets'
           New-Item -ItemType Directory -Force -Path $assets | Out-Null
@@ -559,7 +562,7 @@ jobs:
           cargo update -p sciter-rs --precise 674e07d3066ca9a92ced3816203ab6b652629d1e
           cargo build --locked --features inline,vram,hwcodec --release --bins
           mkdir -p ./Release
-          mv ./target/release/rustdesk.exe ./Release/rustdesk.exe
+          mv ./target/release/rustdesk.exe ./Release/wyc.exe
           curl -LJ -o ./Release/sciter.dll https://github.com/c-smile/sciter-sdk/raw/master/bin.win/x32/sciter.dll
           echo "output_folder=./Release" >> $GITHUB_OUTPUT
           curl -LJ -o ./usbmmidd_v2.zip https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip
@@ -606,7 +609,7 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../Release/ -o . -e ../../Release/rustdesk.exe
+          python3 ./generate.py -f ../../Release/ -o . -e ../../Release/wyc.exe
           popd
           mkdir -p ./SignOutput
           mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}-sciter.exe

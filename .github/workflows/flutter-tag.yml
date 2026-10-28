@@ -11,6 +11,10 @@ on:
 
 jobs:
   run-flutter-tag-build:
+    # Same reason as flutter-nightly.yml: the called workflow needs contents: write
+    # for its release-publishing jobs, and a caller can only grant, never extend.
+    permissions:
+      contents: write
     uses: ./.github/workflows/flutter-build.yml
     secrets: inherit
     with:

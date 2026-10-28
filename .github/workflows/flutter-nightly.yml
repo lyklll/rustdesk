@@ -8,6 +8,11 @@ on:
 
 jobs:
   run-flutter-nightly-build:
+    # flutter-build.yml declares job-level `permissions: contents: write` (release
+    # publishing). A reusable workflow cannot be granted more than the caller
+    # allows, so without this the whole run ends in `startup_failure`.
+    permissions:
+      contents: write
     uses: ./.github/workflows/flutter-build.yml
     secrets: inherit
     with:

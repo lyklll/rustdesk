@@ -37,9 +37,15 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          submodules: recursive
+          submodules: false
           token: ${{ github.token }}
 
+      - name: Init submodules (anonymous)
+        shell: bash
+        run: |
+          git config --local --unset-all http.https://github.com/.extraheader || true
+          git config --global --unset-all http.https://github.com/.extraheader || true
+          git submodule update --init --recursive
       - name: Install prerequisites
         run: |
           sudo apt-get install ca-certificates -y

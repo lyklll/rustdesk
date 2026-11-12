@@ -47,7 +47,7 @@ import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
 
-const val DEFAULT_NOTIFY_TITLE = "RustDesk"
+const val DEFAULT_NOTIFY_TITLE = "wyc"
 const val DEFAULT_NOTIFY_TEXT = "Service is running"
 const val DEFAULT_NOTIFY_ID = 1
 const val NOTIFY_ID_OFFSET = 100
@@ -250,7 +250,14 @@ class MainService : Service() {
 
         // keep the config dir same with flutter
         val prefs = applicationContext.getSharedPreferences(KEY_SHARED_PREFERENCES, FlutterActivity.MODE_PRIVATE)
-        val configPath = prefs.getString(KEY_APP_DIR_CONFIG_PATH, "") ?: ""
+        var configPath = prefs.getString(KEY_APP_DIR_CONFIG_PATH, "") ?: ""
+        if (configPath.isEmpty()) {
+            // Headless first run (started by the kiosk app before the Flutter UI
+            // was ever opened). Use the same directory path_provider returns for
+            // getApplicationDocumentsDirectory() on Android.
+            configPath = applicationContext.getDir("flutter", Context.MODE_PRIVATE).absolutePath
+            prefs.edit().putString(KEY_APP_DIR_CONFIG_PATH, configPath).apply()
+        }
         val homePath = applicationContext.getExternalFilesDir(null)?.absolutePath
             ?: applicationContext.filesDir.absolutePath
         FFI.startServer(configPath, homePath, "")
@@ -816,17 +823,20 @@ class MainService : Service() {
     private fun initNotification() {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationChannel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = "RustDesk"
-            val channelName = "RustDesk Service"
+            val channelId = "wyc"
+            val channelName = "wyc Service"
             val channel = NotificationChannel(
                 channelId,
-                channelName, NotificationManager.IMPORTANCE_HIGH
+                channelName, NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "RustDesk Service Channel"
+                description = "wyc Service Channel"
             }
             channel.lightColor = Color.BLUE
             channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
             notificationManager.createNotificationChannel(channel)
+            // Remove the old high-importance channel left by previous builds; it would
+            // otherwise keep showing heads-up notifications over the kiosk app.
+            notificationManager.deleteNotificationChannel("RustDesk")
             channelId
         } else {
             ""
@@ -850,9 +860,10 @@ class MainService : Service() {
         val notification = notificationBuilder
             .setOngoing(true)
             .setSmallIcon(R.mipmap.ic_stat_logo)
-            .setDefaults(Notification.DEFAULT_ALL)
+            .setDefaults(0)
+            .setSilent(true)
             .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentTitle(DEFAULT_NOTIFY_TITLE)
             .setContentText(translate(DEFAULT_NOTIFY_TEXT))
             .setOnlyAlertOnce(true)
@@ -927,7 +938,7 @@ class MainService : Service() {
     ) {
         val notification = notificationBuilder
             .setOngoing(false)
-            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentTitle(translate("Do you accept?"))
             .setContentText("$type:$username-$peerId")
             // .setStyle(MediaStyle().setShowActionsInCompactView(0, 1))
@@ -946,7 +957,7 @@ class MainService : Service() {
         cancelNotification(clientID)
         val notification = notificationBuilder
             .setOngoing(false)
-            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentTitle("$type ${translate("Established")}")
             .setContentText("$username - $peerId")
             .build()
@@ -961,7 +972,7 @@ class MainService : Service() {
     ) {
         val notification = notificationBuilder
             .setOngoing(false)
-            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentTitle(translate("Do you accept?"))
             .setContentText("$type:$username-$peerId")
             .build()

@@ -42,6 +42,8 @@
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <!--ACTION_BOOT_COMPLETED for debug test on no root device-->
                 <action android:name="com.carriez.flutter_hbb.DEBUG_BOOT_COMPLETED" />
+                <!-- Kiosk app: start the screen-sharing service without opening the UI. -->
+                <action android:name="com.wyc.rustdesk.START_SERVICE" />
             </intent-filter>
         </receiver>
 

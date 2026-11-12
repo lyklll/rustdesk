@@ -50,6 +50,8 @@ const val RES_FAILED = -100
 // Flutter channel
 const val START_ACTION = "start_action"
 const val GET_START_ON_BOOT_OPT = "get_start_on_boot_opt"
+// Sent by the kiosk app to start the screen-sharing service without any UI.
+const val ACTION_START_SERVICE = "com.wyc.rustdesk.START_SERVICE"
 const val SET_START_ON_BOOT_OPT = "set_start_on_boot_opt"
 const val SYNC_APP_DIR_CONFIG_PATH = "sync_app_dir"
 const val PICK_IMPORT_FILES = "pick_import_files"

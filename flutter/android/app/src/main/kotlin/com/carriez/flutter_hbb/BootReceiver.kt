@@ -16,11 +16,11 @@ class BootReceiver : BroadcastReceiver() {
     private val logTag = "tagBootReceiver"
 
     override fun onReceive(context: Context, intent: Intent) {
-        val action = intent.action
-        Log.d(logTag, "onReceive $action")
-        val isBoot = Intent.ACTION_BOOT_COMPLETED == action || DEBUG_BOOT_COMPLETED == action
+        val intentAction = intent.action
+        Log.d(logTag, "onReceive $intentAction")
+        val isBoot = Intent.ACTION_BOOT_COMPLETED == intentAction || DEBUG_BOOT_COMPLETED == intentAction
         // Kiosk apps trigger this action after boot; it must not open MainActivity.
-        val isManual = ACTION_START_SERVICE == action
+        val isManual = ACTION_START_SERVICE == intentAction
         if (!isBoot && !isManual) {
             return
         }
